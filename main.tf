@@ -6,22 +6,22 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket         = "terraform-dev-b"
-    key            = "environment/dev/terraform.tfstate"
-    dynamodb_table = "terraform-locks"
-    region         = "eu-west-1"
-    encrypt        = true
-  }
+  #   backend "s3" {
+  #     bucket         = "terraform-dev-b"
+  #     key            = "environment/dev/terraform.tfstate"
+  #     dynamodb_table = "terraform-locks"
+  #     region         = "eu-west-1"
+  #     encrypt        = true
+  #   }
 }
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "eu-west-1"
+  region = var.region
 }
 
 resource "aws_s3_bucket" "terraform-dev-b" {
-  bucket        = "terraform-dev-b"
+  bucket        = var.bucket_name
   force_destroy = "true"
 }
 
@@ -64,8 +64,8 @@ resource "aws_dynamodb_table" "terraform-locks" {
 
 
 resource "aws_instance" "instance_1" {
-  ami             = "ami-01cae1550c0adea9c" # eu-west-1
-  instance_type   = "t2.micro"
+  ami             = var.ami # eu-west-1
+  instance_type   = var.instance_type
   security_groups = [aws_security_group.instances_sg.name]
   user_data       = <<-EOF
               #!/bin/bash
@@ -76,8 +76,8 @@ resource "aws_instance" "instance_1" {
 }
 
 resource "aws_instance" "instance_2" {
-  ami             = "ami-01cae1550c0adea9c" # eu-west-1
-  instance_type   = "t2.micro"
+  ami             = var.ami # eu-west-1
+  instance_type   = var.instance_type
   security_groups = [aws_security_group.instances_sg.name]
   user_data       = <<-EOF
               #!/bin/bash
@@ -88,15 +88,22 @@ resource "aws_instance" "instance_2" {
 }
 
 
-
 data "aws_vpc" "default_vpc" {
   default = true
 }
 
 
-data "aws_subnet_ids" "default_subnet" {
-  vpc_id = data.aws_vpc.default_vpc.id
+# data "aws_subnets" "default_subnet" {
+#   vpc_id = data.aws_vpc.default_vpc.id
 
+# }
+
+
+data "aws_subnets" "default_subnet" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default_vpc.id]
+  }
 }
 
 resource "aws_security_group" "instances_sg" {
@@ -119,7 +126,7 @@ resource "aws_security_group_rule" "allow_http_inbound" {
 resource "aws_lb" "web_app_front_end_lb" {
   name               = "web-app-lb"
   load_balancer_type = "application"
-  subnets            = data.aws_subnet_ids.default_subnet.ids
+  subnets            = data.aws_subnets.default_subnet.ids
   security_groups    = [aws_security_group.alb_sg.id]
 }
 
@@ -220,4 +227,22 @@ resource "aws_security_group_rule" "alb_sg_rule_egress" {
   type              = "egress"
   cidr_blocks       = ["0.0.0.0/0"]
 
+}
+
+
+resource "aws_db_instance" "db_instance" {
+  allocated_storage = 20
+  # This allows any minor version within the major engine_version
+  # defined below, but will also result in allowing AWS to auto
+  # upgrade the minor version of your DB. This may be too risky
+  # in a real production environment.
+  auto_minor_version_upgrade = true
+  storage_type               = "standard"
+  engine                     = "postgres"
+  engine_version             = "12"
+  instance_class             = "db.t2.micro"
+  db_name                    = var.db_name
+  username                   = var.db_user
+  password                   = var.db_pass
+  skip_final_snapshot        = true
 }
