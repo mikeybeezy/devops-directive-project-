@@ -59,3 +59,19 @@ variable "domain" {
 }
 
 # RDS Variables 
+
+
+
+variable "environment_name" {
+  description = "Name of environment"
+  type        = string
+  default     = "dev"
+}
+
+
+variable "app_name" {
+  description = "name of app"
+  type        = string
+  default     = "web-app"
+}
+
