@@ -1,13 +1,5 @@
 
 # EC2 Variables 
-
-variable "instance_name" {
-  description = ""
-  type        = string
-  default     = "value"
-}
-
-
 variable "region" {
   description = ""
   type        = string
