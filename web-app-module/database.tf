@@ -15,3 +15,18 @@ resource "aws_db_instance" "db_instance" {
   password                   = var.db_pass
   skip_final_snapshot        = true
 }
+
+
+
+#Dynamodb 
+resource "aws_dynamodb_table" "terraform-locks" {
+  name         = "terraform-locks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+
+}
+
