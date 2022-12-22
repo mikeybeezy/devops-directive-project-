@@ -1,3 +1,8 @@
+# Configure the AWS Provider
+provider "aws" {
+  region = var.region
+}
+
 
 
 data "aws_vpc" "default_vpc" {

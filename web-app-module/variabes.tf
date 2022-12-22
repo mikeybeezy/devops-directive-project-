@@ -3,13 +3,14 @@
 variable "region" {
   description = ""
   type        = string
-  default     = "us-east-1" #eu-west-1
+  default     = "eu-west-1" #eu-west-1 
 }
 
 
 variable "instance_name" {
   description = ""
   type        = string
+  default     = "hello-world"
 }
 
 variable "ami" {
@@ -49,6 +50,7 @@ variable "db_name" {
 variable "bucket_name" {
   description = "naem of s3 bucket"
   type        = string
+  default     = "terraform-dev-b"
 }
 
 # Route 53 Variables
@@ -56,6 +58,7 @@ variable "bucket_name" {
 variable "domain" {
   description = "Domain for Website"
   type        = string
+  default     = "scaletific.com"
 }
 
 # RDS Variables 
